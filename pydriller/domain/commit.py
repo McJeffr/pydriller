@@ -732,11 +732,26 @@ class Commit:
         :param dmm_prop: Property indicating the type of risk
         :return: dmm value (between 0.0 and 1.0) for the property represented in the property.
         """
-        delta_profile = self._delta_risk_profile(dmm_prop)
-        if delta_profile:
-            (delta_low, delta_high) = delta_profile
-            return self._good_change_proportion(delta_low, delta_high)
-        return None
+        commit_modifications = self.modifications
+
+        if len(commit_modifications) == 0:
+            return None
+
+        delta_low_increasing = 0
+        delta_low_decreasing = 0
+        delta_high_increasing = 0
+        delta_high_decreasing = 0
+        for m in commit_modifications:
+            delta_profile = m._delta_risk_profile(dmm_prop)
+            if delta_profile:
+                delta_low_decreasing += delta_profile[0] if delta_profile[0] < 0 else 0
+                delta_low_increasing += delta_profile[0] if delta_profile[0] >= 0 else 0
+                delta_high_increasing += delta_profile[1] if delta_profile[1] >= 0 else 0
+                delta_high_decreasing += delta_profile[1] if delta_profile[1] < 0 else 0
+
+        delta_low = delta_low_increasing + abs(delta_high_decreasing)
+        delta_high = abs(delta_low_decreasing) + delta_high_increasing
+        return self._good_change_proportion(delta_low, delta_high)
 
     def _delta_risk_profile(self, dmm_prop: DMMProperty) -> Optional[Tuple[int, int]]:
         """
