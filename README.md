@@ -1,9 +1,7 @@
 [![Build Status](https://github.com/ishepard/pydriller/workflows/Pydriller%20workflow/badge.svg?event=push&branch=master)](https://github.com/ishepard/pydriller/actions)
 [![Documentation Status](https://readthedocs.org/projects/pydriller/badge/?version=latest)](https://pydriller.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/ishepard/pydriller/branch/master/graph/badge.svg)](https://codecov.io/gh/ishepard/pydriller)
-[![BCH compliance](https://bettercodehub.com/edge/badge/ishepard/pydriller?branch=master&token=fdd54de940e65d248cd892ac8791a1445f38c88f)](https://bettercodehub.com/)
-
-[![Downloads](https://pepy.tech/badge/pydriller/month)](https://pepy.tech/project/pydriller/month)
+[![Downloads](https://pepy.tech/badge/pydriller/month)](https://pepy.tech/project/pydriller)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/ishepard/pydriller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/ishepard/pydriller/context:python)
 
 # PyDriller
@@ -86,6 +84,7 @@ Install pydriller and the requirements:
 to run the tests (using pytest):
 
 ```
+> pip install -r test-requirements.txt
 > unzip test-repos.zip
 > pytest
 ```

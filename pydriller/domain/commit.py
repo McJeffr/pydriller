@@ -138,7 +138,7 @@ class Modification:
     This class contains information regarding a modified file in a commit.
     """
 
-    def __init__(self, old_path: str, new_path: str,
+    def __init__(self, old_path: Optional[str], new_path: Optional[str],
                  change_type: ModificationType,
                  diff_and_sc: Dict[str, str]):
         """
@@ -219,6 +219,7 @@ class Modification:
         if self._new_path is not None and str(self._new_path) != "/dev/null":
             path = self._new_path
         else:
+            assert self._old_path
             path = self._old_path
 
         return path.name
@@ -554,6 +555,42 @@ class Commit:
         return len(self._c_object.parents) > 1
 
     @property
+    def insertions(self) -> int:
+        """
+        Return the number of added lines in the commit (as shown from --shortstat).
+
+        :return: int insertion lines
+        """
+        return self._c_object.stats.total["insertions"]
+
+    @property
+    def deletions(self) -> int:
+        """
+        Return the number of deleted lines in the commit (as shown from --shortstat).
+
+        :return: int deletion lines
+        """
+        return self._c_object.stats.total["deletions"]
+
+    @property
+    def lines(self) -> int:
+        """
+        Return the number of modified lines in the commit (as shown from --shortstat).
+
+        :return: int insertion + deletion lines
+        """
+        return self._c_object.stats.total["lines"]
+
+    @property
+    def files(self) -> int:
+        """
+        Return the number of modified files of the commit (as shown from --shortstat).
+
+        :return: int modified files number
+        """
+        return self._c_object.stats.total["files"]
+
+    @property
     def modifications(self) -> List[Modification]:
         """
         Return a list of modified files. The list is empty if the commit is
@@ -664,7 +701,12 @@ class Commit:
     def _get_branches(self):
         c_git = Git(str(self._conf.get('path_to_repo')))
         branches = set()
-        for branch in set(c_git.branch('--contains', self.hash).split('\n')):
+        args = ['--contains', self.hash]
+        if self._conf.get("include_remotes"):
+            args = ["-r"] + args
+        if self._conf.get("include_refs"):
+            args = ["-a"] + args
+        for branch in set(c_git.branch(*args).split('\n')):
             branches.add(branch.strip().replace('* ', ''))
         return branches
 

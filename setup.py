@@ -22,8 +22,7 @@ def get_version():
             if line.startswith('__version__'):
                 delim = '"' if '"' in line else "'"
                 return line.split(delim)[1]
-        else:
-            raise RuntimeError("Unable to find version string.")
+        raise RuntimeError("Unable to find version string.")
 
 
 setup(
@@ -39,7 +38,7 @@ setup(
     package_dir={'pydriller': 'pydriller'},
     python_requires='>=3.5',
     install_requires=requirements,
-    test_requirements=requirements + test_requirements,
+    tests_require=requirements + test_requirements,
     classifiers=[
             # How mature is this project? Common values are
             #   3 - Alpha
