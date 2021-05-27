@@ -669,7 +669,7 @@ class Commit:
         return branches
 
     @property
-    def dmm_unit_size(self) -> Optional[float]:
+    def dmm_unit_size(self) -> Optional[Tuple[float, int, int]]:
         """
         Return the Delta Maintainability Model (DMM) metric value for the unit size property.
 
@@ -681,13 +681,14 @@ class Commit:
         It penalizes (value close to 0.0) working on methods that remain large
         or get larger.
 
-        :return: The DMM value (between 0.0 and 1.0) for method size in this commit,
-                 or None if none of the programming languages in the commit are supported.
+        :return: The DMM value (between 0.0 and 1.0) for method size in this commit
+                 as well as the values that make up the DMM value, or None if none of the
+                 programming languages in the commit are supported.
         """
         return self._delta_maintainability(DMMProperty.UNIT_SIZE)
 
     @property
-    def dmm_unit_complexity(self) -> Optional[float]:
+    def dmm_unit_complexity(self) -> Optional[Tuple[float, int, int]]:
         """
         Return the Delta Maintainability Model (DMM) metric value for the unit complexity property.
 
@@ -699,13 +700,14 @@ class Commit:
         It penalizes (value close to 0.0) working on methods that remain complex
         or get more complex.
 
-        :return: The DMM value (between 0.0 and 1.0) for method complexity in this commit.
-                 or None if none of the programming languages in the commit are supported.
+        :return: The DMM value (between 0.0 and 1.0) for method complexity in this commit
+                 as well as the values that make up the DMM value, or None if none of the
+                 programming languages in the commit are supported.
         """
         return self._delta_maintainability(DMMProperty.UNIT_COMPLEXITY)
 
     @property
-    def dmm_unit_interfacing(self) -> Optional[float]:
+    def dmm_unit_interfacing(self) -> Optional[Tuple[float, int, int]]:
         """
         Return the Delta Maintainability Model (DMM) metric value for the unit interfacing property.
 
@@ -717,12 +719,13 @@ class Commit:
         It penalizes (value close to 0.0) working on methods that continue to have
         or are extended with too many parameters.
 
-        :return: The dmm value (between 0.0 and 1.0) for method interfacing in this commit.
-                  or None if none of the programming languages in the commit are supported.
-       """
+        :return: The DMM value (between 0.0 and 1.0) for method interfacing in this commit
+                 as well as the values that make up the DMM value, or None if none of the
+                 programming languages in the commit are supported.
+        """
         return self._delta_maintainability(DMMProperty.UNIT_INTERFACING)
 
-    def _delta_maintainability(self, dmm_prop: DMMProperty) -> Optional[float]:
+    def _delta_maintainability(self, dmm_prop: DMMProperty) -> Optional[Tuple[float, int, int]]:
         """
         Compute the Delta Maintainability Model (DMM) value for the given risk predicate.
         The DMM value is computed as the proportion of good change in the commit:
@@ -730,12 +733,15 @@ class Commit:
         Bad changes: Adding high risk code or removing low risk code.
 
         :param dmm_prop: Property indicating the type of risk
-        :return: dmm value (between 0.0 and 1.0) for the property represented in the property.
+        :return: tuple containing the dmm value (between 0.0 and 1.0) for the property
+                 represented in the property, as well as the nloc of "good change" and
+                 "bad change" that makes up the dmm value.
         """
         delta_profile = self._delta_risk_profile(dmm_prop)
         if delta_profile:
             (delta_low, delta_high) = delta_profile
-            return self._good_change_proportion(delta_low, delta_high)
+            (good_change, bad_change) = self._change_proportion(delta_low, delta_high)
+            return self._delta_score(good_change, bad_change)
         return None
 
     def _delta_risk_profile(self, dmm_prop: DMMProperty) -> Optional[Tuple[int, int]]:
@@ -756,14 +762,15 @@ class Commit:
         return None
 
     @staticmethod
-    def _good_change_proportion(low_risk_delta: int, high_risk_delta: int) -> Optional[float]:
+    def _change_proportion(low_risk_delta: int, high_risk_delta: int) -> Optional[Tuple[int, int]]:
         """
-        Given a delta risk profile, compute the proportion of "good" change in the total change.
-        Increasing low risk code, or decreasing high risk code, is considered good.
-        Other types of changes are considered not good.
+        Given the low risk profile delta and the high risk profile delta, determine
+        the amount of "good changes" and the amount of "bad changes", expressed in nloc.
 
-        :return: proportion of good change in total change, or None if the total change is zero.
+        :return: tuple containing the amount of "good changes" and the amount of
+        "bad changes".
         """
+
         bad_change, good_change = (0, 0)
 
         if low_risk_delta >= 0:
@@ -774,6 +781,22 @@ class Commit:
             bad_change += high_risk_delta
         else:
             good_change += abs(high_risk_delta)
+
+        assert good_change >= 0 and bad_change >= 0
+        return good_change, bad_change
+
+    @staticmethod
+    def _delta_score(good_change: int, bad_change: int) -> Optional[float]:
+        """
+        Given the "good change" and "bad change", calculate the delta score.
+        Increasing low risk code, or decreasing high risk code, is considered good.
+        Other types of changes are considered not good.
+        A delta score of > 0.5 indicates a positive change, a delta score of < 0.5
+        indicates a negative change.
+
+        :return: delta score in the form of a proportion of good change in total change,
+        or None if the total change is zero.
+        """
 
         assert good_change >= 0 and bad_change >= 0
 
