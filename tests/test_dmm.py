@@ -105,19 +105,19 @@ def commit_by_msg(repo: GitRepository, msg: str) -> Commit:
 @pytest.mark.parametrize('msg,dmm', UNIT_SIZE_TEST_DATA)
 def test_dmm_unit_size(repo: GitRepository, msg: str, dmm: float):
     commit = commit_by_msg(repo, msg)
-    assert commit.dmm_unit_size == dmm
+    assert commit.dmm_unit_size[0] == dmm
 
 
 @pytest.mark.parametrize('msg,dmm', UNIT_COMPLEXITY_TEST_DATA)
 def test_dmm_unit_complexity(repo: GitRepository, msg: str, dmm: float):
     commit = commit_by_msg(repo, msg)
-    assert commit.dmm_unit_complexity == dmm
+    assert commit.dmm_unit_complexity[0] == dmm
 
 
 @pytest.mark.parametrize('msg,dmm', UNIT_INTERFACING_TEST_DATA)
 def test_dmm_unit_interfacing(repo: GitRepository, msg: str, dmm: float):
     commit = commit_by_msg(repo, msg)
-    assert commit.dmm_unit_interfacing == dmm
+    assert commit.dmm_unit_interfacing[0] == dmm
 
 
 def test_unsupported_language(repo: GitRepository):
@@ -129,7 +129,7 @@ def test_unsupported_language(repo: GitRepository):
 def test_mixin_unsupported_language(repo: GitRepository):
     # Add .txt file and update (comments in) .java files
     commit = commit_by_msg(repo, 'Release under Apache 2 license')
-    assert commit.dmm_unit_size is None
+    assert commit.dmm_unit_size[0] is None
 
 
 def test_delta_profile_modification(repo: GitRepository):

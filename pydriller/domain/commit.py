@@ -741,7 +741,8 @@ class Commit:
         if delta_profile:
             (delta_low, delta_high) = delta_profile
             (good_change, bad_change) = self._change_proportion(delta_low, delta_high)
-            return self._delta_score(good_change, bad_change)
+            dmm_value = self._delta_score(good_change, bad_change)
+            return dmm_value, good_change, bad_change
         return None
 
     def _delta_risk_profile(self, dmm_prop: DMMProperty) -> Optional[Tuple[int, int]]:
