@@ -169,4 +169,5 @@ def test_supported_languages(repo: GitRepository):
         (-1,  1, 0.0)
     ])
 def test_good_proportion(dlo: int, dhi: int, prop: float):
-    assert Commit._good_change_proportion(dlo, dhi) == prop
+    (good_change, bad_change) = Commit._change_proportion(dlo, dhi)
+    assert Commit._delta_score(good_change, bad_change) == prop
